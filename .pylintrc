@@ -1,0 +1,27 @@
+[MAIN]
+ignore=migrations,__pycache__,.venv,venv,.git
+extension-pkg-whitelist=pydantic
+
+[FORMAT]
+max-line-length=100
+
+[MESSAGES CONTROL]
+disable=
+    missing-module-docstring,
+    too-few-public-methods,
+    import-outside-toplevel,
+    no-name-in-module,
+    duplicate-code
+
+[DESIGN]
+max-args=7
+max-attributes=10
+max-locals=20
+max-returns=8
+
+[TYPECHECK]
+generated-members=pydantic.BaseModel.*,sqlmodel.Field,sqlmodel.Relationship
+
+[SIMILARITIES]
+min-similarity-lines=6
+ignore-imports=yes
