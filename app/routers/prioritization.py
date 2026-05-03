@@ -11,13 +11,9 @@ from app.schemas import (
     RankRequest,
     RankResponse,
 )
+from app.utils import compute_rice
 
 router = APIRouter(prefix="/prioritization", tags=["prioritization"])
-
-
-def _compute_rice(reach: float, impact: float, confidence: float, effort: float) -> float:
-    """RICE = Reach × Impact × (Confidence / 100) / Effort."""
-    return (reach * impact * confidence / 100) / effort
 
 
 def _aggregate_initiatives(
@@ -46,7 +42,7 @@ def _aggregate_initiatives(
         avg_impact = sum(e.impact for e in estimates) / n
         avg_confidence = sum(e.confidence for e in estimates) / n
         avg_effort = sum(e.effort for e in estimates) / n
-        rice = _compute_rice(avg_reach, avg_impact, avg_confidence, avg_effort)
+        rice = compute_rice(avg_reach, avg_impact, avg_confidence, avg_effort)
 
         result.append(
             RankedItem(
