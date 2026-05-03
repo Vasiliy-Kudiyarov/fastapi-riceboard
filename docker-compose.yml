@@ -1,8 +1,9 @@
 services:
   web:
     build: .
-    # На день 3 сюда добавится: alembic upgrade head &&
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
       - .:/app
     ports:
