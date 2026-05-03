@@ -8,6 +8,7 @@ max-line-length=100
 [MESSAGES CONTROL]
 disable=
     missing-module-docstring,
+    missing-function-docstring,
     too-few-public-methods,
     import-outside-toplevel,
     no-name-in-module,
