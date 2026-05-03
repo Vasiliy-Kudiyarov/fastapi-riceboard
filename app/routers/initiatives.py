@@ -2,12 +2,12 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from app.auth import get_current_user
 from app.database import get_session
-from app.models import Initiative, InitiativeCategory, User
-from app.schemas import InitiativeCreate, InitiativeRead, InitiativeUpdate
+from app.models import Category, Initiative, InitiativeCategory, User
+from app.schemas import CategoryRead, InitiativeCreate, InitiativeDetail, InitiativeRead, InitiativeUpdate
 
 router = APIRouter(prefix="/initiatives", tags=["initiatives"])
 
@@ -23,6 +23,8 @@ def _get_initiative_or_404(initiative_id: int, session: Session) -> Initiative:
 def list_initiatives(
     status_filter: Optional[str] = Query(default=None, alias="status"),
     category_id: Optional[int] = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     session: Session = Depends(get_session),
 ) -> list[Initiative]:
     query = select(Initiative)
@@ -37,12 +39,27 @@ def list_initiatives(
             Initiative.id == InitiativeCategory.initiative_id,
         ).where(InitiativeCategory.category_id == category_id)
 
+    # Сортировка по дате создания — новые сверху
+    query = query.order_by(col(Initiative.created_at).desc()).offset(offset).limit(limit)
     return list(session.exec(query).all())
 
 
-@router.get("/{initiative_id}", response_model=InitiativeRead)
-def get_initiative(initiative_id: int, session: Session = Depends(get_session)) -> Initiative:
-    return _get_initiative_or_404(initiative_id, session)
+@router.get("/{initiative_id}", response_model=InitiativeDetail)
+def get_initiative(initiative_id: int, session: Session = Depends(get_session)) -> InitiativeDetail:
+    initiative = _get_initiative_or_404(initiative_id, session)
+
+    # Загружаем категории через связующую таблицу
+    categories = session.exec(
+        select(Category).join(
+            InitiativeCategory,
+            Category.id == InitiativeCategory.category_id,
+        ).where(InitiativeCategory.initiative_id == initiative.id)
+    ).all()
+
+    return InitiativeDetail(
+        **initiative.model_dump(),
+        categories=[CategoryRead.model_validate(c) for c in categories],
+    )
 
 
 @router.post("/", response_model=InitiativeRead, status_code=status.HTTP_201_CREATED)

@@ -76,6 +76,11 @@ class InitiativeRead(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class InitiativeDetail(InitiativeRead):
+    """Расширенный ответ для GET /initiatives/{id} — включает категории."""
+    categories: list["CategoryRead"] = []
+
+
 # --- Оценки ---
 
 class EstimateCreate(BaseModel):
